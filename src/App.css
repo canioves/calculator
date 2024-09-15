@@ -1,0 +1,61 @@
+@font-face {
+  font-family: "silly-calculator-font";
+  src: url("./fonts/silly-calculator-font.ttf") format("truetype");
+}
+
+* {
+  font-family: "silly-calculator-font";
+  font-size: 48px;
+  box-sizing: border-box;
+}
+
+h1 {
+  text-align: center;
+}
+
+#calculator-container {
+  border: 5px solid black;
+  width: 500px;
+  height: fit-content;
+  margin: 0 auto;
+}
+
+#display {
+  border: 3px solid black;
+  margin: 10px;
+  padding: 5px;
+  height: 100px;
+}
+
+#keyboard {
+  margin: 10px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+}
+
+.row > button {
+  font-size: 0.8rem;
+  margin: 10px;
+  background-color: white;
+  padding: 5px;
+}
+
+#clear {
+  background-color: rgb(201, 19, 19);
+  color: white;
+}
+
+.row > button:active {
+  background-color: lightgray;
+}
+
+#clear:active {
+  background-color: rgb(150, 19, 19);
+}
+
+.wide {
+  grid-column: span 2;
+}
