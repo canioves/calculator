@@ -8,11 +8,15 @@ function Calculator() {
   const [operator, setOperator] = useState("");
   const [operators, setOperators] = useState([]);
 
-  const [displayFormula, setDisplayFormula] = useState("0");
+  const [isNegative, setIsNegative] = useState(false);
 
-  let allNumbers = numbers;
+  let allNumbers = [];
+  let allOperators = [];
+
+  const [displayFormula, setDisplayFormula] = useState("0");
   function handleDigitButton(value) {
     setOperator("");
+    setIsNegative(false);
 
     let newNumber = number;
 
@@ -41,36 +45,59 @@ function Calculator() {
     let newOperator = value;
     let newOperators = [...operators];
 
-    if (operator !== "" && newOperator === "-") {
-      setNumber("-");
-      setOperator("");
-      setDisplayFormula(displayFormula + value);
-    } else if (operator !== "" && newOperator !== "-") {
-      setOperator(newOperator);
+    let newNumbers = [...numbers];
 
-      const newDisplayFormula =
-        displayFormula.substring(0, displayFormula.length - 1) + newOperator;
-      setDisplayFormula(newDisplayFormula);
+    let newIsNegative = isNegative;
+
+    if (operator !== "") {
+      if (newOperator === "-") {
+        if (!isNegative) {
+          newIsNegative = true;
+        } else {
+          newIsNegative = false;
+          newOperators.pop();
+          newOperators.push(newOperator);
+        }
+      } else {
+        newIsNegative = false;
+        newOperators.pop();
+        newOperators.push(newOperator);
+      }
     } else {
-      setNumbers([...numbers, parseFloat(number)]);
+      newOperators.push(newOperator);
+      newNumbers.push(parseFloat(number));
+    }
 
-      newOperators.push(value);
-      setOperators(newOperators);
+    setOperator(newOperator);
+    setOperators(newOperators);
 
-      setNumber("");
-      setOperator(newOperator);
-      setDisplayFormula(displayFormula + value);
+    setNumbers(newNumbers);
+    setNumber(newIsNegative ? "-" : "");
+
+    setIsNegative(newIsNegative);
+
+    setDisplayFormula(displayFormula + newOperator);
+  }
+
+  function handleDecimalButton() {
+    let newNumber = number;
+    if (!newNumber.includes(".")) {
+      newNumber += ".";
+      setNumber(newNumber);
+      setDisplayFormula(displayFormula + ".");
     }
   }
 
   function handleEqualsButton() {
     allNumbers = [...numbers, parseFloat(number)];
-    setNumbers(allNumbers);
+    allOperators = [...operators];
 
     const formulaResult = calculateFormula();
 
     setDisplayFormula(formulaResult.toString());
+
     setNumber(formulaResult.toString());
+    setNumbers([]);
     setOperators([]);
     setOperator("");
   }
@@ -80,54 +107,42 @@ function Calculator() {
     let multIndex = 0;
     let divIndex = 0;
 
-    let newNumbers = allNumbers;
-    let newOperators = [];
-
     while (multIndex !== -1 || divIndex !== -1) {
-      multIndex = operators.indexOf("*");
-      divIndex = operators.indexOf("/");
+      multIndex = allOperators.indexOf("*");
+      divIndex = allOperators.indexOf("/");
       if (multIndex > -1) {
         tempResult = allNumbers[multIndex] * allNumbers[multIndex + 1];
-        newNumbers = [
+        allNumbers = [
           ...allNumbers.slice(0, multIndex),
           tempResult,
           ...allNumbers.slice(multIndex + 2),
         ];
-        setNumbers(newNumbers);
-        newOperators = operators.splice(multIndex, 1);
-        setOperators(newOperators);
+        allOperators.splice(multIndex, 1);
       } else if (divIndex > -1) {
         tempResult = allNumbers[divIndex] / allNumbers[divIndex + 1];
-        newNumbers = [
+        allNumbers = [
           ...allNumbers.slice(0, divIndex),
           tempResult,
           ...allNumbers.slice(divIndex + 2),
         ];
-        setNumbers(newNumbers);
-        newOperators = operators.splice(divIndex, 1);
-        setOperators(newOperators);
+        allOperators.splice(divIndex, 1);
       }
-      allNumbers = newNumbers;
     }
 
-    while (operators.length > 0) {
-      if (operators[0] === "+") {
+    while (allOperators.length > 0) {
+      if (allOperators[0] === "+") {
         tempResult = allNumbers[0] + allNumbers[1];
-      } else if (operators[0] === "-") {
+      } else if (allOperators[0] === "-") {
         tempResult = allNumbers[0] - allNumbers[1];
       }
-      console.log(allNumbers.slice(2));
-      newNumbers = [tempResult, ...allNumbers.slice(2)];
-      setNumbers(newNumbers);
-      newOperators = operators.splice(0, 1);
-      setOperators(newOperators);
-      allNumbers = newNumbers;
-      console.log(allNumbers);
-    }
 
+      allNumbers = [tempResult, ...allNumbers.slice(2)];
+      allOperators.splice(0, 1);
+    }
     const result = allNumbers[0];
+
     allNumbers = [];
-    setNumbers(allNumbers);
+    allOperators = [];
     return result;
   }
 
@@ -141,6 +156,7 @@ function Calculator() {
           onClearButtonClick={handleClearButton}
           onOperatorButtonClick={handleOperatorButton}
           onEqualsButtonClick={handleEqualsButton}
+          onDecimalButtonClick={handleDecimalButton}
         ></Keyboard>
       </div>
     </>
@@ -149,8 +165,8 @@ function Calculator() {
 
 function Display({ displayText }) {
   return (
-    <div id="display">
-      <span id="display-content">{displayText}</span>
+    <div id="display-container">
+      <span id="display">{displayText}</span>
     </div>
   );
 }
@@ -160,6 +176,7 @@ function Keyboard({
   onClearButtonClick,
   onOperatorButtonClick,
   onEqualsButtonClick,
+  onDecimalButtonClick,
 }) {
   return (
     <div id="keyboard">
@@ -219,7 +236,9 @@ function Keyboard({
         >
           0
         </button>
-        <button id="decimal">.</button>
+        <button id="decimal" onClick={onDecimalButtonClick}>
+          .
+        </button>
         <button id="equals" className="wide" onClick={onEqualsButtonClick}>
           =
         </button>
